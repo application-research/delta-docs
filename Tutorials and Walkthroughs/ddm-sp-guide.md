@@ -56,7 +56,7 @@ Source `delta.env` to set the environment variables if you'd like to use the CLI
 Create a dataset by clicking on the `+ New Dataset` button on the top left corner of the DDM UI.
 Fill in the details of the dataset and click `Create Dataset`.
 
-<img src="./assets/ddm-add-dataset.png" width=500/>
+<img src="../assets/ddm-add-dataset.png" width=500/>
 
 **By CLI**
 ```bash
@@ -79,7 +79,7 @@ Find the wallet in the DDM UI, and click the **Associate With Dataset** button b
 
 Select the dataset you added previously, and click **Apply**
 
-<img src="./assets/ddm-associate-wallet.png" width=400/>
+<img src="../assets/ddm-associate-wallet.png" width=400/>
 
 **By CLI**
 ```bash
@@ -102,7 +102,7 @@ Follow the instructions in [Ptolemy Import Guide](https://github.com/application
 **By UI**
 Click on the `Datasets` button on the top left corner of the DDM UI. Click the `Attach Content` button below the dataset you created previously. 
 
-<img src="./assets/ddm-attach-content-button.png" width=300/>
+<img src="../assets/ddm-attach-content-button.png" width=300/>
 
 After that, you can either click Attach Content or drag and drop the file into the UI.
 
@@ -122,7 +122,7 @@ JSON Format: Consult the [DDM Format](https://github.com/application-research/de
 **By UI**
 Click on the `+ Add Provider` button on the top left corner of the DDM UI. Enter the SP's address (f0######), and an optional friendly name.
 
-<img src="./assets/ddm-add-provider.png" width=400/>
+<img src="../assets/ddm-add-provider.png" width=400/>
 
 **By CLI**
 ```bash
@@ -130,7 +130,9 @@ Click on the `+ Add Provider` button on the top left corner of the DDM UI. Enter
 ```
 
 ### 4a. Associate Provider with datasett
-TODO - UI
+
+**By UI**
+From the **Providers** pane, click the **Manage [SP ID]** button. Under the **Allowed Datasets** section, click **Add**, select the dataset you created previously, and click **Apply**.
 
 **By CLI**
 > optionally, enable self-service
@@ -138,6 +140,41 @@ TODO - UI
 ./delta-dm provider modify --id f011111 --allowed-datasets radiant-earth-ml --allow-self-service on
 ```
 
-### 5. Create Replication
+### 5. Create Replications!
 
 **By UI**
+Click the **Add Replication** button in the top left-hand corner of the DDM UI. Select the provider, and (optionally) select a dataset to replicate. Choose the number of deals, days to delay start epoch, and then click **Add**.
+
+<img src="../assets/ddm-add-replication.png" width=400/>
+
+Wait a few seconds - the deal(s) will be made with the provider and show up in the DDM Replications tab.
+
+**By CLI**
+```bash
+./delta-dm replication create --provider f011111 --num 1 --dataset radiant-earth-ml --delay-start 7
+```
+
+**By SP Pulling deal (Self-Service)**
+First, enable self-service for the provider by visiting the **Providers** tab, and clicking **Edit**, and checking the **Allow Self Service** checkbox. Securely share the **Provider Key** with the SP, as they'll use this to request deals from DDM.
+
+<img src="../assets/ddm-allow-ss.png" width=400/>
+
+In order to make a deal request, your ddm API (i.e, `http://localhost:1314/api/v2/self-service`) must be reachable by them. To set easily set this up, we recommend configuring a reverse proxy like [Caddy](https://caddyserver.com/) or [Nginx](https://nginx.org/en/).
+
+Check out [Delta Importer](https://github.com/application-research/delta-importer), which can be configured in either **Pull Dataset** or **Pull CID** mode to automatically pull deals from DDM. 
+
+For an SP to manually make a request for a deal, share the following **cURL** command with them, as an example:
+
+```bash
+# Pull a deal for a specific dataset
+curl --request GET \
+  --url 'http://your-delta-dm-address-here/api/v1/self-service/by-dataset/dataset-name?start_epoch_delay=3' \
+  --header 'X-DELTA-AUTH: xxx-xxx-xxx-xxx'
+
+# Pull a deal for a specific CID
+curl --request GET \
+  --url 'http://your-delta-dm-address-here/api/v1/self-service/by-cid/cid?start_epoch_delay=3' \
+  --header 'X-DELTA-AUTH: xxx-xxx-xxx-xxx'
+```
+
+For more information on the API, see the [DDM Self-Service documentation](https://github.com/application-research/delta-dm/blob/main/docs/self-service.md)
